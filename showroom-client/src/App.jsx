@@ -1,122 +1,167 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import Navbar from './components/Navbar';
+import HeroSection from './components/HeroSection';
+import CarCard from './components/CarCard';
+import Footer from './components/Footer';
+import InventoryPage from './pages/InventoryPage';
+import AdminLogin from './admin/pages/AdminLogin';
+import AdminDashboard from './admin/pages/AdminDashboard';
+import ProtectedRoute from './admin/components/ProtectedRoute';
+import { fetchVehicles } from './services/vehicleService';
+import { ArrowRight, Sparkles, Loader2, Car } from 'lucide-react';
+import VehicleDetailsPage from './pages/VehicleDetailsPage';
+import ServicesPage from './pages/ServicesPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
+import Layout from './components/Layout';
 
-function App() {
-  const [count, setCount] = useState(0)
+function ShowroomHome() {
+  const { data: vehicleResponse, isLoading } = useQuery({
+    queryKey: ['vehicles', 'featured'],
+    queryFn: () => fetchVehicles('All'),
+  });
+
+  const rawVehicles = Array.isArray(vehicleResponse)
+    ? vehicleResponse
+    : (vehicleResponse?.data || []);
+
+  const featuredVehicles = rawVehicles.slice(0, 6);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 antialiased flex flex-col">
+      <main className="flex-1">
+        <HeroSection />
 
-      <div className="ticks"></div>
+        {/* Featured Vehicles Section */}
+        <section id="inventory" className="max-w-7xl mx-auto px-4 sm:px-8 py-16 text-left">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel text-blue-400 text-xs font-semibold uppercase tracking-wider mb-3">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Curated Fleet</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                Featured Vehicles
+              </h2>
+            </div>
+            
+            <Link
+              to="/inventory"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              <span>View All Inventory</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          {isLoading ? (
+            <div className="py-16 text-center text-zinc-400 flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <p className="text-sm">Fetching showroom fleet...</p>
+            </div>
+          ) : featuredVehicles.length === 0 ? (
+            <div className="py-16 text-center text-zinc-500 glass-card rounded-2xl">
+              <Car className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p className="text-base font-semibold">No vehicles currently listed.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredVehicles.map((car) => (
+                <CarCard key={car.id} car={car} />
+              ))}
+            </div>
+          )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          <div className="mt-12 text-center">
+            <Link
+              to="/inventory"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]"
+            >
+              <span>Explore Complete Inventory</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+} // Fixed missing closing bracket for ShowroomHome
+
+function AdminLoginWrapper() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem('admin_token');
+  if (token) return <Navigate to="/admin/dashboard" replace />;
+  return <AdminLogin onLoginSuccess={() => navigate('/admin/dashboard')} />;
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Layout>
+              <ShowroomHome />
+            </Layout>
+          }
+        />
+        <Route
+          path="/inventory"
+          element={
+            <Layout>
+              <InventoryPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/inventory/:id"
+          element={
+            <Layout>
+              <VehicleDetailsPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/services"
+          element={
+            <Layout>
+              <ServicesPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <Layout>
+              <AboutPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <Layout>
+              <ContactPage />
+            </Layout>
+          }
+        />
+
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLoginWrapper />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Catch-all fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
