@@ -1,0 +1,6 @@
+"showroom-api/vendor/" 
+"showroom-api/node_modules/" 
+"showroom-api/.env" 
+"showroom-client/node_modules/" 
+"showroom-client/dist/" 
+".DS_Store" 
