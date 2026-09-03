@@ -20,7 +20,7 @@ class ModelSeeder extends Seeder
                 'Prado',
                 'Prius',
                 'Camry',
-                'Corolla Cross',
+                'Corolla Cross'
             ],
             'Honda' => [
                 'Civic',
@@ -29,7 +29,7 @@ class ModelSeeder extends Seeder
                 'HR-V',
                 'Vezel',
                 'CR-V',
-                'Accord',
+                'Accord'
             ],
             'Suzuki' => [
                 'Alto',
@@ -38,77 +38,76 @@ class ModelSeeder extends Seeder
                 'Swift',
                 'Bolan',
                 'Every',
-                'Jimny',
+                'Jimny'
             ],
             'Hyundai' => [
                 'Elantra',
                 'Tucson',
                 'Sonata',
                 'Santa Fe',
-                'Porter H-100',
+                'Porter H-100'
             ],
             'KIA' => [
                 'Sportage',
                 'Picanto',
                 'Stonic',
                 'Sorento',
-                'Carnival',
+                'Carnival'
             ],
             'Haval' => [
                 'H6',
                 'H6 HEV',
                 'Jolion',
-                'Jolion HEV',
+                'Jolion HEV'
             ],
             'MG' => [
                 'HS',
                 'HS PHEV',
                 'ZS',
                 'ZS EV',
-                'GT',
+                'GT'
             ],
             'Changan' => [
                 'Alsvin',
                 'Oshan X7',
-                'Karvaan',
+                'Karvaan'
             ],
             'Audi' => [
                 'e-tron',
                 'A4',
                 'A6',
-                'Q7',
+                'Q7'
             ],
             'BMW' => [
                 '3 Series',
                 '5 Series',
                 '7 Series',
                 'X5',
-                'i4',
+                'i4'
             ],
             'Mercedes-Benz' => [
                 'C-Class',
                 'E-Class',
                 'S-Class',
                 'G-Class',
-                'EQE',
+                'EQE'
             ],
             'Porsche' => [
                 'Taycan',
                 '911 GT3',
                 'Cayenne',
-                'Panamera',
+                'Panamera'
             ],
             'Tesla' => [
                 'Model 3',
                 'Model Y',
                 'Model S',
-                'Model X',
+                'Model X'
             ],
         ];
 
         foreach ($data as $makeName => $models) {
             $make = Make::where('name', $makeName)->first();
-
             if ($make) {
                 foreach ($models as $modelName) {
                     CarModel::firstOrCreate([
