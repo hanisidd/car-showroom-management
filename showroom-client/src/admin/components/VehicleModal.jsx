@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, Star, Trash2, GripVertical, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -32,7 +33,7 @@ export default function VehicleModal({ isOpen, onClose, onSuccess, lookupData })
     make_id: null,
     model_id: null,
     fuel_type_id: null,
-    body_type_id: null, // <-- ADD THIS
+    body_type_id: null,
     year: 2026,
     price: '',
     condition: 'Used',
@@ -56,7 +57,7 @@ export default function VehicleModal({ isOpen, onClose, onSuccess, lookupData })
 
   const handleFileSelect = (files) => {
     const selectedFiles = Array.from(files);
-    if (images.length + selectedFiles.length > 15) return alert('Max 15 images allowed.');
+    if (images.length + selectedFiles.length > 15) return toast.error('Max 15 images allowed.');
     const mapped = selectedFiles.map((file) => ({
       id: Math.random().toString(36).substring(2, 9),
       file,
@@ -80,7 +81,7 @@ export default function VehicleModal({ isOpen, onClose, onSuccess, lookupData })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (images.length === 0) return alert('Please upload at least 1 image.');
+    if (images.length === 0) return toast.error('Please upload at least 1 image.');
     setSubmitting(true);
     const payload = new FormData();
     Object.keys(formData).forEach((key) => {
@@ -94,7 +95,7 @@ export default function VehicleModal({ isOpen, onClose, onSuccess, lookupData })
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
-      alert('Failed to save vehicle.');
+      toast.error(err.response?.data?.message || 'Failed to save vehicle.');
     } finally {
       setSubmitting(false);
     }
@@ -111,8 +112,6 @@ export default function VehicleModal({ isOpen, onClose, onSuccess, lookupData })
             <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-xl glass-panel"><X className="w-5 h-5" /></button>
           </div>
           <form id="vehicle-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 flex-1 text-left custom-scrollbar">
-            {/* Make, Model, Fuel Type Dropdowns */}
-            {/* Make, Model, Fuel Type, Body Type Dropdowns */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <SearchableSelect
                 label="Make"
@@ -150,8 +149,6 @@ export default function VehicleModal({ isOpen, onClose, onSuccess, lookupData })
                 placeholder="Select Body Type..."
               />
             </div>
-
-            {/* Transmission, Condition + Specs */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
                 <label className="text-xs text-zinc-400 font-semibold mb-1 block">Condition</label>
@@ -183,8 +180,6 @@ export default function VehicleModal({ isOpen, onClose, onSuccess, lookupData })
                 <input type="number" placeholder="1200" value={formData.mileage} onChange={(e) => setFormData({ ...formData, mileage: e.target.value })} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500" required />
               </div>
             </div>
-
-            {/* Interactive Color Pickers */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-black/40 p-4 rounded-2xl border border-zinc-800">
               <div className="flex items-center justify-between">
                 <label className="text-xs text-zinc-400 font-semibold">Exterior Color</label>
@@ -201,8 +196,6 @@ export default function VehicleModal({ isOpen, onClose, onSuccess, lookupData })
                 </div>
               </div>
             </div>
-
-            {/* VIN & LOT */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-zinc-400 font-semibold mb-1 block">VIN Number</label>
@@ -213,13 +206,10 @@ export default function VehicleModal({ isOpen, onClose, onSuccess, lookupData })
                 <input type="text" value={formData.lot_number} onChange={(e) => setFormData({ ...formData, lot_number: e.target.value })} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 uppercase" />
               </div>
             </div>
-
             <div>
               <label className="text-xs text-zinc-400 font-semibold mb-1 block">Description</label>
               <textarea rows="3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500 resize-none" />
             </div>
-
-            {/* Image Upload Area */}
             <div>
               <label className="text-xs text-zinc-400 font-semibold mb-2 flex justify-between">
                 <span>Vehicle Images (Max 15)</span>

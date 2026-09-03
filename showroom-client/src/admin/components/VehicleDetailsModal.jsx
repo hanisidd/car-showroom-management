@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Eye, Edit3, Loader2, ChevronLeft, ChevronRight, Upload, Trash2 } from 'lucide-react';
+import Swal from 'sweetalert2';
+import toast from 'react-hot-toast';
 import SearchableSelect from './SearchableSelect';
 import api from '../../services/api';
 
 export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupData, onSuccess }) {
-    const [mode, setMode] = useState('view'); // 'view' or 'edit'
+    const [mode, setMode] = useState('view');
     const [selectedImg, setSelectedImg] = useState(0);
     const [loading, setLoading] = useState(false);
 
-    // Form State
     const [formData, setFormData] = useState({
         make_id: null,
         model_id: null,
         fuel_type_id: null,
+        body_type_id: null,
         year: '',
         price: '',
         condition: 'Used',
@@ -27,7 +29,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
         description: '',
     });
 
-    // Image Management State
     const [existingImages, setExistingImages] = useState([]);
     const [newImages, setNewImages] = useState([]);
 
@@ -36,13 +37,13 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
             const initialMakeId = vehicle.make_id ?? vehicle.make?.id ?? null;
             const initialModelId = vehicle.model_id ?? vehicle.model?.id ?? null;
             const initialFuelId = vehicle.fuel_type_id ?? vehicle.fuel_type?.id ?? null;
-            const initialBodyId = vehicle.body_type_id ?? vehicle.body_type?.id ?? null; // <-- ADD THIS
+            const initialBodyId = vehicle.body_type_id ?? vehicle.body_type?.id ?? null;
 
             setFormData({
                 make_id: initialMakeId ? Number(initialMakeId) : null,
                 model_id: initialModelId ? Number(initialModelId) : null,
                 fuel_type_id: initialFuelId ? Number(initialFuelId) : null,
-                body_type_id: initialBodyId ? Number(initialBodyId) : null, // <-- ADD THIS
+                body_type_id: initialBodyId ? Number(initialBodyId) : null,
                 year: vehicle.year || '',
                 price: vehicle.price || '',
                 condition: vehicle.condition || 'Used',
@@ -55,7 +56,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                 lot_number: vehicle.lot_number || '',
                 description: vehicle.description || '',
             });
-
             setExistingImages(vehicle.images || []);
             setNewImages([]);
             setSelectedImg(0);
@@ -66,10 +66,8 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
     const handleUpdate = async (e) => {
         e.preventDefault();
         setLoading(true);
-
         try {
             await api.put(`/admin/vehicles/${vehicle.id}`, formData);
-
             if (newImages.length > 0) {
                 const uploadPayload = new FormData();
                 newImages.forEach((imgObj) => uploadPayload.append('images[]', imgObj.file));
@@ -77,11 +75,10 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
             }
-
             if (onSuccess) onSuccess();
             onClose();
         } catch (err) {
-            alert('Failed to update vehicle details.');
+            toast.error('Failed to update vehicle details.');
         } finally {
             setLoading(false);
         }
@@ -113,13 +110,28 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
     };
 
     const handleDeleteExistingImage = async (imageId) => {
-        if (!confirm('Remove this image from listing?')) return;
-        try {
-            await api.delete(`/admin/vehicle-images/${imageId}`);
-            setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
-            setSelectedImg(0);
-        } catch (err) {
-            alert('Failed to delete image.');
+        const result = await Swal.fire({
+            title: 'Delete Image?',
+            text: 'Are you sure you want to remove this photo from the gallery?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#27272a',
+            confirmButtonText: 'Yes, delete photo',
+            background: '#121215',
+            color: '#ffffff',
+            customClass: { popup: 'border border-zinc-800 rounded-3xl backdrop-blur-2xl' }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await api.delete(`/admin/vehicle-images/${imageId}`);
+                setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+                setSelectedImg(0);
+                toast.success('Image deleted');
+            } catch (err) {
+                toast.error('Failed to delete image.');
+            }
         }
     };
 
@@ -132,7 +144,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                     exit={{ opacity: 0, scale: 0.95 }}
                     className="glass-card w-full max-w-4xl max-h-[90vh] rounded-3xl border border-white/10 shadow-2xl flex flex-col relative my-auto"
                 >
-                    {/* Header */}
                     <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
                         <div className="flex items-center gap-3">
                             <h2 className="text-xl font-bold text-white">
@@ -162,7 +173,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                         </button>
                     </div>
 
-                    {/* Modal Content */}
                     <div className="p-6 overflow-y-auto space-y-6 flex-1 text-left custom-scrollbar">
                         {mode === 'view' ? (
                             <div className="space-y-6">
@@ -174,7 +184,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                                 type="button"
                                                 onClick={handlePrevImage}
                                                 className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/70 hover:bg-black text-white border border-white/10 backdrop-blur-md transition-all opacity-80 hover:opacity-100"
-                                                title="Previous Image"
                                             >
                                                 <ChevronLeft className="w-5 h-5" />
                                             </button>
@@ -182,7 +191,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                                 type="button"
                                                 onClick={handleNextImage}
                                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/70 hover:bg-black text-white border border-white/10 backdrop-blur-md transition-all opacity-80 hover:opacity-100"
-                                                title="Next Image"
                                             >
                                                 <ChevronRight className="w-5 h-5" />
                                             </button>
@@ -192,7 +200,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                         </>
                                     )}
                                 </div>
-
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     <div className="bg-black/60 p-3.5 rounded-xl border border-zinc-800">
                                         <p className="text-[10px] text-zinc-500 uppercase font-semibold">Price</p>
@@ -211,7 +218,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                         <p className="text-sm font-bold text-blue-400">{vehicle.vin || ' '}</p>
                                     </div>
                                 </div>
-
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black/40 p-4 rounded-xl border border-zinc-800/80">
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs text-zinc-500">Exterior Color:</span>
@@ -224,13 +230,11 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                         <span className="text-xs font-mono uppercase text-zinc-300">{vehicle.interior_color || '#ffffff'}</span>
                                     </div>
                                 </div>
-
                                 <div className="grid grid-cols-3 gap-3 text-xs bg-black/40 p-4 rounded-xl border border-zinc-800/80">
                                     <div><span className="text-zinc-500">LOT:</span> <span className="text-amber-400 font-bold">{vehicle.lot_number || ' '}</span></div>
                                     <div><span className="text-zinc-500">Mileage:</span> <span className="text-white font-semibold">{vehicle.mileage?.toLocaleString()} mi</span></div>
                                     <div><span className="text-zinc-500">Condition:</span> <span className="text-white font-semibold">{vehicle.condition}</span></div>
                                 </div>
-
                                 {vehicle.description && (
                                     <div>
                                         <h4 className="text-xs font-semibold text-zinc-400 mb-1">Description & Notes</h4>
@@ -239,7 +243,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                 )}
                             </div>
                         ) : (
-                            /* Editable Form View */
                             <form id="edit-vehicle-form" onSubmit={handleUpdate} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <SearchableSelect
@@ -276,7 +279,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                         }}
                                     />
                                 </div>
-
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                     <div>
                                         <label className="text-xs text-zinc-400 font-semibold mb-1 block">Condition</label>
@@ -331,7 +333,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                         />
                                     </div>
                                 </div>
-
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-black/40 p-4 rounded-2xl border border-zinc-800">
                                     <div className="flex items-center justify-between">
                                         <label className="text-xs text-zinc-400 font-semibold">Exterior Color</label>
@@ -358,7 +359,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-xs text-zinc-400 font-semibold mb-1 block">VIN Number (Chassis)</label>
@@ -379,7 +379,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                         />
                                     </div>
                                 </div>
-
                                 <div>
                                     <label className="text-xs text-zinc-400 font-semibold mb-1 block">Description</label>
                                     <textarea
@@ -389,7 +388,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                         className="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
                                     />
                                 </div>
-
                                 <div className="space-y-3 pt-2">
                                     <label className="text-xs text-zinc-400 font-semibold block">Manage Gallery Photos</label>
                                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
@@ -438,7 +436,6 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                         )}
                     </div>
 
-                    {/* Footer */}
                     <div className="flex justify-end gap-3 p-4 border-t border-white/10 shrink-0 bg-black/40 rounded-b-3xl">
                         <button
                             type="button"
