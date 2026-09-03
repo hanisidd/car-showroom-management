@@ -221,7 +221,9 @@ export default function AdminDashboard() {
                       {paginatedVehicles.map((car) => {
                         const primaryImg = car.images?.find((i) => i.is_primary)?.image_url || car.images?.[0]?.image_url;
                         const coverSrc = primaryImg
-                          ? `http://localhost:8000${primaryImg}`
+                          ? (primaryImg.startsWith('http')
+                            ? primaryImg
+                            : `http://localhost:8000${primaryImg.startsWith('/') ? '' : '/'}${primaryImg}`)
                           : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=300';
                         const fullName = `${car.make?.name || ''} ${car.model?.name || ''}`;
                         return (

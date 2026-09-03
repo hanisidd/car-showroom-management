@@ -87,8 +87,11 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
     if (!isOpen || !vehicle) return null;
 
     const currentImages = existingImages;
-    const primaryImageUrl = currentImages[selectedImg]?.image_url
-        ? `http://localhost:8000${currentImages[selectedImg].image_url}`
+    const imgPath = currentImages[selectedImg]?.image_url;
+    const primaryImageUrl = imgPath
+        ? (imgPath.startsWith('http')
+            ? imgPath
+            : `http://localhost:8000${imgPath.startsWith('/') ? '' : '/'}${imgPath}`)
         : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70';
 
     const handlePrevImage = () => {
@@ -393,8 +396,11 @@ export default function VehicleDetailsModal({ isOpen, onClose, vehicle, lookupDa
                                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                                         {existingImages.map((img) => (
                                             <div key={img.id} className="relative group h-20 rounded-xl overflow-hidden border border-zinc-800">
-                                                <img src={`http://localhost:8000${img.image_url}`} alt="" className="w-full h-full object-cover" />
-                                                <button
+                                                <img
+                                                    src={img.image_url?.startsWith('http') ? img.image_url : `http://localhost:8000${img.image_url?.startsWith('/') ? '' : '/'}${img.image_url}`}
+                                                    alt=""
+                                                    className="w-full h-full object-cover"
+                                                />                                                <button
                                                     type="button"
                                                     onClick={() => handleDeleteExistingImage(img.id)}
                                                     className="absolute top-1 right-1 p-1 bg-red-600/80 hover:bg-red-600 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
