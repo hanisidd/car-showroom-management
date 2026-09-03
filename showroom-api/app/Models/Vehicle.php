@@ -34,4 +34,9 @@ class Vehicle extends EloquentModel
     public function fuelType(): BelongsTo { return $this->belongsTo(FuelType::class, 'fuel_type_id'); }
     public function bodyType(): BelongsTo { return $this->belongsTo(BodyType::class, 'body_type_id'); }
     public function images(): HasMany { return $this->hasMany(VehicleImage::class)->orderBy('sort_order', 'asc'); }
+    // Add inside App\Models\Vehicle
+public function testDrives(): HasMany
+{
+    return $this->hasMany(TestDrive::class);
+}
 }

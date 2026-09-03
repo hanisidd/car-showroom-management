@@ -47,7 +47,7 @@ export default function Navbar() {
         {/* Right CTA Button (Admin Button Removed & Search Icon Removed) */}
         <div className="hidden md:flex items-center gap-4">
           <Link
-            to="/contact?type=test-ride"
+            to="/book-test-drive"
             className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-blue-500/25 transition-all"
           >
             <Calendar className="w-4 h-4" />

@@ -14,7 +14,7 @@ class TestDriveController extends Controller
 
         return response()->json([
             'message' => 'Test drive booked successfully!',
-            'data' => $testDrive
+            'data'    => $testDrive->load(['vehicle.make', 'vehicle.model']),
         ], 201);
     }
 }

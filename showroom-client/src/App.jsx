@@ -1,9 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import CarCard from './components/CarCard';
-import Footer from './components/Footer';
 import InventoryPage from './pages/InventoryPage';
 import AdminLogin from './admin/pages/AdminLogin';
 import AdminDashboard from './admin/pages/AdminDashboard';
@@ -15,6 +13,7 @@ import ServicesPage from './pages/ServicesPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import Layout from './components/Layout';
+import TestDrivePage from './pages/TestDrivePage';
 
 function ShowroomHome() {
   const { data: vehicleResponse, isLoading } = useQuery({
@@ -45,7 +44,7 @@ function ShowroomHome() {
                 Featured Vehicles
               </h2>
             </div>
-            
+
             <Link
               to="/inventory"
               className="inline-flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
@@ -159,8 +158,15 @@ export default function App() {
           }
         />
 
-        {/* Catch-all fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="/book-test-drive"
+          element={
+            <Layout>
+              <TestDrivePage />
+            </Layout>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
