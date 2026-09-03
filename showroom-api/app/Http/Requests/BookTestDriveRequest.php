@@ -14,11 +14,11 @@ class BookTestDriveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'vehicle_id' => 'required|exists:vehicles,id',
-            'customer_name' => 'required|string|max:255',
+            'vehicle_id'     => 'required|exists:vehicles,id',
+            'customer_name'  => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
             'customer_phone' => 'required|string|max:50',
-            'scheduled_at' => 'required|date|after:now',
+            'scheduled_at'   => 'required|date|after:now',
         ];
     }
 }

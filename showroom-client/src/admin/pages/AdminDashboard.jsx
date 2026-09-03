@@ -7,11 +7,14 @@ import api from '../../services/api';
 import AdminSidebar from '../components/AdminSidebar';
 import VehicleModal from '../components/VehicleModal';
 import VehicleDetailsModal from '../components/VehicleDetailsModal';
-import { Trash2, Plus, Car, Loader2, RefreshCw, Eye, ArrowUpDown, ChevronLeft, ChevronRight, Search, Sparkles, ShieldCheck } from 'lucide-react';
+import { Trash2, Plus, Car, Loader2, RefreshCw, Eye, ArrowUpDown, ChevronLeft, ChevronRight, Search, Sparkles } from 'lucide-react';
 import LookupsManager from './LookupsManager';
+import AdminTestDrivesPage from './AdminTestDrivesPage';
+import AdminOverview from './AdminOverview';
+import AdminInquiriesPage from './AdminInquiriesPage';
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('inventory');
+  const [activeTab, setActiveTab] = useState('overview');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -22,7 +25,6 @@ export default function AdminDashboard() {
   const [sortDirection, setSortDirection] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
-
   const queryClient = useQueryClient();
 
   const { data: vehicleData, isLoading: isLoadingVehicles, refetch } = useQuery({
@@ -30,25 +32,24 @@ export default function AdminDashboard() {
     queryFn: getAdminVehicles,
   });
 
- const { data: lookupData = { makes: [], models: [], fuelTypes: [], bodyTypes: [] } } = useQuery({
-  queryKey: ['lookupData'],
-  queryFn: async () => {
-    const [makesRes, modelsRes, fuelsRes, bodyRes] = await Promise.all([
-      api.get('/makes'),
-      api.get('/models'),
-      api.get('/fuel-types'),
-      api.get('/body-types'),
-    ]);
-    return {
-      makes: makesRes.data,
-      models: modelsRes.data,
-      fuelTypes: fuelsRes.data,
-      bodyTypes: bodyRes.data,
-    };
-  },
-});
+  const { data: lookupData = { makes: [], models: [], fuelTypes: [], bodyTypes: [] } } = useQuery({
+    queryKey: ['lookupData'],
+    queryFn: async () => {
+      const [makesRes, modelsRes, fuelsRes, bodyRes] = await Promise.all([
+        api.get('/makes'),
+        api.get('/models'),
+        api.get('/fuel-types'),
+        api.get('/body-types'),
+      ]);
+      return {
+        makes: makesRes.data,
+        models: modelsRes.data,
+        fuelTypes: fuelsRes.data,
+        bodyTypes: bodyRes.data,
+      };
+    },
+  });
 
-  // Delete vehicle mutation with Toast feedback
   const deleteMutation = useMutation({
     mutationFn: deleteVehicle,
     onSuccess: () => {
@@ -61,7 +62,6 @@ export default function AdminDashboard() {
     }
   });
 
-  // SweetAlert Confirmation for Inventory Deletion
   const handleDeleteVehicle = (id, carName) => {
     Swal.fire({
       title: 'Remove Listing?',
@@ -73,18 +73,13 @@ export default function AdminDashboard() {
       confirmButtonText: 'Yes, delete listing',
       background: '#121215',
       color: '#ffffff',
-      customClass: {
-        popup: 'border border-zinc-800 rounded-3xl backdrop-blur-2xl',
-      }
+      customClass: { popup: 'border border-zinc-800 rounded-3xl backdrop-blur-2xl' }
     }).then((result) => {
-      if (result.isConfirmed) {
-        deleteMutation.mutate(id);
-      }
+      if (result.isConfirmed) deleteMutation.mutate(id);
     });
   };
 
   const rawVehicles = vehicleData?.data || [];
-
   const filteredVehicles = useMemo(() => {
     if (!search.trim()) return rawVehicles;
     return rawVehicles.filter((v) => {
@@ -97,14 +92,13 @@ export default function AdminDashboard() {
     return [...filteredVehicles].sort((a, b) => {
       let valA = a[sortField] || '';
       let valB = b[sortField] || '';
-      if (sortField === 'price' || sortField === 'year' || sortField === 'mileage') {
+      if (['price', 'year', 'mileage'].includes(sortField)) {
         valA = Number(valA) || 0;
         valB = Number(valB) || 0;
       } else {
         valA = String(valA).toLowerCase();
         valB = String(valB).toLowerCase();
       }
-
       if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
       if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
       return 0;
@@ -130,15 +124,14 @@ export default function AdminDashboard() {
     <div className="flex min-h-screen bg-[#09090b] text-zinc-100 antialiased">
       <Toaster position="top-right" />
       <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-
       <main className="flex-1 p-8 overflow-y-auto">
-        {activeTab === 'lookups' ? (
-          <LookupsManager />
-        ) : (
+        {activeTab === 'overview' && <AdminOverview setActiveTab={setActiveTab} />}
+        {activeTab === 'lookups' && <LookupsManager />}
+        {activeTab === 'test-rides' && <AdminTestDrivesPage />}
+        {activeTab === 'inquiries' && <AdminInquiriesPage />}
+        {activeTab === 'inventory' && (
           <div className="space-y-8 text-left">
-            {/* Premium Header Banner */}
             <div className="glass-card p-6 rounded-3xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-2">
                   <Sparkles className="w-3.5 h-3.5" />
@@ -147,7 +140,6 @@ export default function AdminDashboard() {
                 <h1 className="text-2xl font-extrabold text-white tracking-tight">Inventory Management</h1>
                 <p className="text-xs text-zinc-400 mt-1">Manage active vehicle listings, media galleries, pricing, and configurations.</p>
               </div>
-
               <div className="flex items-center gap-3 z-10">
                 <button
                   onClick={() => {
@@ -155,11 +147,9 @@ export default function AdminDashboard() {
                     toast.success('Inventory refreshed!');
                   }}
                   className="p-2.5 rounded-xl glass-panel text-zinc-400 hover:text-white transition-all border border-zinc-800"
-                  title="Refresh List"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
-
                 <button
                   onClick={() => setIsUploadModalOpen(true)}
                   className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]"
@@ -170,9 +160,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Inventory Table Card */}
             <div className="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
-              {/* Search & Counter Bar */}
               <div className="p-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400"><Car className="w-4 h-4" /></div>
@@ -181,7 +169,6 @@ export default function AdminDashboard() {
                     {filteredVehicles.length} Active
                   </span>
                 </div>
-
                 <div className="relative w-full sm:w-64">
                   <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -220,7 +207,6 @@ export default function AdminDashboard() {
                           </div>
                         </th>
                         <th className="p-4">Transmission</th>
-                        <th className="p-4">Colors (Ext / Int)</th>
                         <th className="p-4">VIN / LOT</th>
                         <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort('price')}>
                           <div className="flex items-center gap-1.5">
@@ -238,49 +224,29 @@ export default function AdminDashboard() {
                           ? `http://localhost:8000${primaryImg}`
                           : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=300';
                         const fullName = `${car.make?.name || ''} ${car.model?.name || ''}`;
-
                         return (
                           <tr key={car.id} className="hover:bg-white/5 transition-colors group">
                             <td className="p-4">
-                              <div className="w-16 h-12 rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden relative shadow-inner">
-                                <img src={coverSrc} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                              <div className="w-16 h-12 rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden relative">
+                                <img src={coverSrc} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                               </div>
                             </td>
-
                             <td className="p-4">
-                              <p className="font-bold text-white text-base tracking-tight">{fullName || '—'}</p>
-                              <p className="text-xs text-zinc-500">Year: {car.year} • {car.fuel_type?.name || '—'}</p>
+                              <p className="font-bold text-white text-base">{fullName || 'Unassigned Vehicle'}</p>
+                              <p className="text-xs text-zinc-500">Year: {car.year} | {car.fuel_type?.name || 'Petrol'}</p>
                             </td>
-
                             <td className="p-4">
                               <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30">
                                 {car.transmission || 'Automatic'}
                               </span>
                             </td>
-
-                            <td className="p-4">
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="w-4 h-4 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: car.exterior_color || '#000000' }} />
-                                  <span className="text-[10px] font-mono text-zinc-400 uppercase">{car.exterior_color || '#000'}</span>
-                                </div>
-                                <span className="text-zinc-600">/</span>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="w-4 h-4 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: car.interior_color || '#ffffff' }} />
-                                  <span className="text-[10px] font-mono text-zinc-400 uppercase">{car.interior_color || '#fff'}</span>
-                                </div>
-                              </div>
-                            </td>
-
                             <td className="p-4 text-xs font-mono">
-                              <p className="text-blue-400 font-semibold">VIN: {car.vin || '—'}</p>
-                              <p className="text-amber-400">LOT: {car.lot_number || '—'}</p>
+                              <p className="text-blue-400 font-semibold">VIN: {car.vin || 'N/A'}</p>
+                              <p className="text-amber-400">LOT: {car.lot_number || 'N/A'}</p>
                             </td>
-
                             <td className="p-4 font-extrabold text-emerald-400">
                               PKR {Number(car.price)?.toLocaleString()}
                             </td>
-
                             <td className="p-4 text-right">
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
@@ -289,14 +255,12 @@ export default function AdminDashboard() {
                                     setIsDetailsModalOpen(true);
                                   }}
                                   className="p-2 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-xl transition-all"
-                                  title="View & Edit All Details"
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteVehicle(car.id, fullName)}
                                   className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
-                                  title="Delete Listing"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -310,21 +274,20 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* Table Pagination Footer */}
               <div className="p-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs text-zinc-400">
                 <span className="font-medium">Page {currentPage} of {totalPages}</span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-xl glass-panel hover:text-white disabled:opacity-40 disabled:cursor-not-allowed border border-zinc-800 transition-all"
+                    className="p-2 rounded-xl glass-panel hover:text-white disabled:opacity-40 border border-zinc-800"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-xl glass-panel hover:text-white disabled:opacity-40 disabled:cursor-not-allowed border border-zinc-800 transition-all"
+                    className="p-2 rounded-xl glass-panel hover:text-white disabled:opacity-40 border border-zinc-800"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -345,7 +308,6 @@ export default function AdminDashboard() {
           queryClient.invalidateQueries(['vehicles']);
         }}
       />
-
       <VehicleDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}

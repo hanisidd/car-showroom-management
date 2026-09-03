@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Car, Layers, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Car, Layers, LogOut, Menu, X, Calendar, MessageSquare } from 'lucide-react';
 
 export default function AdminSidebar({ activeTab, setActiveTab }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const menuItems = [
-    { id: 'inventory', label: 'Inventory Management', icon: Car },
+    { id: 'overview', label: 'Dashboard Overview', icon: LayoutDashboard },
+    { id: 'inventory', label: 'Inventory Manager', icon: Car },
     { id: 'lookups', label: 'Makes, Models & Fuels', icon: Layers },
+    { id: 'test-rides', label: 'Test Rides', icon: Calendar },
+    { id: 'inquiries', label: 'Contact Inquiries', icon: MessageSquare },
   ];
 
   const handleExitAdmin = () => {
@@ -19,7 +22,6 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
 
   return (
     <>
-      {/* Mobile Menu Toggle Button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="md:hidden fixed top-4 left-4 z-50 p-2.5 glass-panel text-white rounded-xl shadow-lg"
@@ -27,7 +29,6 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
         {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
-      {/* Sidebar Container */}
       <aside
         className={`fixed md:static inset-y-0 left-0 z-40 w-64 glass-panel border-r border-white/10 p-6 flex flex-col justify-between transition-transform duration-300 ${
           mobileOpen ? 'translate-x-0 bg-black/95 backdrop-blur-2xl' : '-translate-x-full md:translate-x-0'
@@ -48,6 +49,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
               return (
                 <button
                   key={item.id}
+                  type="button"
                   onClick={() => {
                     setActiveTab(item.id);
                     setMobileOpen(false);

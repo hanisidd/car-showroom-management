@@ -1,23 +1,27 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, Clock, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import api from '../services/api';
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+  });
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      // Endpoint optionally handled by backend or notification system
       await api.post('/contact', formData);
       toast.success('Your message has been sent successfully!');
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
     } catch (err) {
-      toast.success('Thank you! Your message was received.');
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+      toast.error(err.response?.data?.message || 'Failed to send message. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -25,6 +29,8 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-black text-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12 text-left">
+      <Toaster position="top-right" />
+      
       <div className="text-center space-y-3 max-w-2xl mx-auto">
         <h1 className="text-4xl font-black tracking-tight">Contact Us</h1>
         <p className="text-zinc-400 text-xs sm:text-sm">
@@ -46,7 +52,6 @@ export default function ContactPage() {
                   <p className="text-zinc-400">Main Boulevard, Automotive Sector, Blue Area</p>
                 </div>
               </div>
-
               <div className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
                 <div>
@@ -54,7 +59,6 @@ export default function ContactPage() {
                   <p className="text-zinc-400">+92 (51) 111-222-333</p>
                 </div>
               </div>
-
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
                 <div>
@@ -62,7 +66,6 @@ export default function ContactPage() {
                   <p className="text-zinc-400">support@showroom.com</p>
                 </div>
               </div>
-
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
                 <div>
@@ -89,7 +92,6 @@ export default function ContactPage() {
                   placeholder="John Doe"
                 />
               </div>
-
               <div>
                 <label className="text-xs text-zinc-400 font-semibold mb-1 block">Email Address</label>
                 <input
@@ -107,14 +109,13 @@ export default function ContactPage() {
               <div>
                 <label className="text-xs text-zinc-400 font-semibold mb-1 block">Phone Number</label>
                 <input
-                  type="text"
+                  type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
                   placeholder="+92 300 1234567"
                 />
               </div>
-
               <div>
                 <label className="text-xs text-zinc-400 font-semibold mb-1 block">Subject</label>
                 <input
@@ -145,7 +146,14 @@ export default function ContactPage() {
               disabled={submitting}
               className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20"
             >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4" /> Send Message</>}
+              {submitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>Send Message</span>
+                </>
+              )}
             </button>
           </form>
         </div>

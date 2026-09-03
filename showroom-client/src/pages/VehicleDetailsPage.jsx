@@ -3,29 +3,19 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import toast, { Toaster } from 'react-hot-toast';
 import api from '../services/api';
-import { 
-  ArrowLeft, Fuel, Gauge, Cog, Calendar, 
-  ShieldCheck, MapPin, CheckCircle2, Loader2, Car, ChevronLeft, ChevronRight 
+import {
+  ArrowLeft, Fuel, Gauge, Cog, Calendar,
+  ShieldCheck, MapPin, Loader2, Car, ChevronLeft, ChevronRight, MessageCircle
 } from 'lucide-react';
 
 export default function VehicleDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
   const thumbnailContainerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-
-  const [bookingForm, setBookingForm] = useState({
-    customer_name: '',
-    customer_email: '',
-    customer_phone: '',
-    scheduled_at: '',
-  });
-  const [bookingLoading, setBookingLoading] = useState(false);
-  const [bookingSuccess, setBookingSuccess] = useState(false);
 
   const { data: vehicle, isLoading, isError } = useQuery({
     queryKey: ['vehicle', id],
@@ -50,7 +40,7 @@ export default function VehicleDetailsPage() {
         <Car className="w-12 h-12 text-zinc-600 mx-auto" />
         <h2 className="text-xl font-bold text-white">Vehicle Not Found</h2>
         <p className="text-xs text-zinc-400">The requested vehicle listing is unavailable or has been removed.</p>
-        <button 
+        <button
           onClick={() => navigate('/inventory')}
           className="px-5 py-2.5 bg-blue-600 text-white text-xs font-semibold rounded-xl"
         >
@@ -68,8 +58,8 @@ export default function VehicleDetailsPage() {
 
   const makeName = typeof vehicle.make === 'object' ? vehicle.make?.name : vehicle.make;
   const modelName = typeof vehicle.model === 'object' ? vehicle.model?.name : vehicle.model;
-  const fuelName = typeof vehicle.fuel_type === 'object' 
-    ? vehicle.fuel_type?.name 
+  const fuelName = typeof vehicle.fuel_type === 'object'
+    ? vehicle.fuel_type?.name
     : (vehicle.fuelType?.name || vehicle.fuel_type || 'Petrol');
   const bodyTypeName = typeof vehicle.body_type === 'object'
     ? vehicle.body_type?.name
@@ -101,29 +91,25 @@ export default function VehicleDetailsPage() {
     thumbnailContainerRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  const handleTestDriveSubmit = async (e) => {
-    e.preventDefault();
-    setBookingLoading(true);
-    try {
-      await api.post('/test-drives', {
-        vehicle_id: vehicle.id,
-        ...bookingForm,
-      });
-      setBookingSuccess(true);
-      setBookingForm({ customer_name: '', customer_email: '', customer_phone: '', scheduled_at: '' });
-      toast.success('Test drive booked successfully!');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to schedule test drive. Please try again.');
-    } finally {
-      setBookingLoading(false);
-    }
+  // WhatsApp Negotiation Handler
+  const handleNegotiateWhatsApp = () => {
+    const phoneNumber = '923001234567'; // Replace with your dealership WhatsApp number
+    const vehicleTitle = `${makeName || ''} ${modelName || ''} (${vehicle.year || ''})`.trim();
+    const priceText = vehicle.price ? `PKR ${Number(vehicle.price).toLocaleString()}` : 'Contact for Price';
+    const vinText = vehicle.vin || 'N/A';
+    const pageUrl = window.location.href;
+
+    const textMessage = `Hello VELOCITY Team! 👋\n\nI am interested in negotiating the price for this vehicle:\n🚗 *Car:* ${vehicleTitle}\n💰 *Listed Price:* ${priceText}\n🔍 *VIN/Chassis:* ${vinText}\n🔗 *Link:* ${pageUrl}\n\nPlease let me know the best final price you can offer.`;
+
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(textMessage)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-8 pt-28 pb-20 text-left flex-1 w-full">
       <Toaster position="top-right" />
-      <Link 
-        to="/inventory" 
+      <Link
+        to="/inventory"
         className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -144,7 +130,6 @@ export default function VehicleDetailsPage() {
             {makeName || ''} {modelName || ''} {vehicle.year ? `(${vehicle.year})` : ''}
           </h1>
         </div>
-
         <div className="text-left md:text-right">
           <p className="text-xs text-zinc-500 uppercase font-semibold">Listing Price</p>
           <p className="text-3xl font-extrabold text-emerald-400">
@@ -154,12 +139,13 @@ export default function VehicleDetailsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           <div className="space-y-3">
             <div className="relative h-80 sm:h-[450px] w-full rounded-3xl bg-black border border-zinc-800 overflow-hidden shadow-2xl group">
-              <img 
-                src={currentCoverSrc} 
-                alt={`${makeName || ''} ${modelName || ''}`} 
+              <img
+                src={currentCoverSrc}
+                alt={`${makeName || ''} ${modelName || ''}`}
                 className="w-full h-full object-cover transition-all duration-300 select-none"
               />
               {images.length > 1 && (
@@ -186,7 +172,7 @@ export default function VehicleDetailsPage() {
             </div>
 
             {images.length > 1 && (
-              <div 
+              <div
                 ref={thumbnailContainerRef}
                 onMouseDown={handleMouseDown}
                 onMouseLeave={handleMouseLeaveOrUp}
@@ -201,8 +187,8 @@ export default function VehicleDetailsPage() {
                       key={img.id || idx}
                       onClick={() => setSelectedImageIndex(idx)}
                       className={`relative h-20 w-28 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
-                        selectedImageIndex === idx 
-                          ? 'border-blue-500 ring-2 ring-blue-500/20 scale-95' 
+                        selectedImageIndex === idx
+                          ? 'border-blue-500 ring-2 ring-blue-500/20 scale-95'
                           : 'border-zinc-800 opacity-60 hover:opacity-100'
                       }`}
                     >
@@ -283,79 +269,35 @@ export default function VehicleDetailsPage() {
           )}
         </div>
 
+        {/* Action Sidebar */}
         <div className="space-y-6">
           <div className="glass-card p-6 rounded-3xl border border-zinc-800 sticky top-28 space-y-6">
-            <div>
-              <h3 className="text-lg font-bold text-white mb-1">Schedule a Test Drive</h3>
-              <p className="text-xs text-zinc-400">Experience this {makeName || ''} {modelName || ''} firsthand at our showroom.</p>
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-white">Experience & Purchase</h3>
+              <p className="text-xs text-zinc-400">
+                Book a test drive or negotiate directly with our sales team.
+              </p>
             </div>
 
-            {bookingSuccess ? (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 space-y-2 text-center">
-                <CheckCircle2 className="w-8 h-8 mx-auto" />
-                <p className="text-sm font-bold">Test Drive Request Sent!</p>
-                <p className="text-xs text-zinc-300">Our representative will call you shortly to confirm your schedule.</p>
-                <button
-                  onClick={() => setBookingSuccess(false)}
-                  className="text-xs underline text-emerald-400 mt-2 block mx-auto"
-                >
-                  Schedule Another
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleTestDriveSubmit} className="space-y-4">
-                <div>
-                  <label className="text-xs text-zinc-400 font-semibold mb-1 block">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="John Doe"
-                    value={bookingForm.customer_name}
-                    onChange={(e) => setBookingForm({ ...bookingForm, customer_name: e.target.value })}
-                    className="w-full bg-black/60 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-zinc-400 font-semibold mb-1 block">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="john@example.com"
-                    value={bookingForm.customer_email}
-                    onChange={(e) => setBookingForm({ ...bookingForm, customer_email: e.target.value })}
-                    className="w-full bg-black/60 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-zinc-400 font-semibold mb-1 block">Phone Number</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+92 300 1234567"
-                    value={bookingForm.customer_phone}
-                    onChange={(e) => setBookingForm({ ...bookingForm, customer_phone: e.target.value })}
-                    className="w-full bg-black/60 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-zinc-400 font-semibold mb-1 block">Preferred Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={bookingForm.scheduled_at}
-                    onChange={(e) => setBookingForm({ ...bookingForm, scheduled_at: e.target.value })}
-                    className="w-full bg-black/60 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={bookingLoading}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all"
-                >
-                  {bookingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Booking Request'}
-                </button>
-              </form>
-            )}
+            {/* Book Test Drive Button */}
+            <button
+              type="button"
+              onClick={() => navigate(`/book-test-drive?vehicle_id=${vehicle.id}`)}
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01]"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Book Test Drive for This Car</span>
+            </button>
+
+            {/* Negotiate Price via WhatsApp Button */}
+            <button
+              type="button"
+              onClick={handleNegotiateWhatsApp}
+              className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.01]"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Negotiate Price on WhatsApp</span>
+            </button>
 
             <div className="border-t border-zinc-800/80 pt-4 space-y-2 text-xs text-zinc-400">
               <div className="flex items-center gap-2">
