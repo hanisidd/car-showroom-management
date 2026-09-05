@@ -12,7 +12,8 @@ import LookupsManager from './LookupsManager';
 import AdminTestDrivesPage from './AdminTestDrivesPage';
 import AdminOverview from './AdminOverview';
 import AdminInquiriesPage from './AdminInquiriesPage';
-
+import AdminUsersPage from './AdminUsersPage';
+import AdminProfilePage from './AdminProfilePage';
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -129,6 +130,8 @@ export default function AdminDashboard() {
         {activeTab === 'lookups' && <LookupsManager />}
         {activeTab === 'test-rides' && <AdminTestDrivesPage />}
         {activeTab === 'inquiries' && <AdminInquiriesPage />}
+        {activeTab === 'users' && <AdminUsersPage />}
+        {activeTab === 'profile' && <AdminProfilePage />}
         {activeTab === 'inventory' && (
           <div className="space-y-8 text-left">
             <div className="glass-card p-6 rounded-3xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
