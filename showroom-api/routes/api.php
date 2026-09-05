@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminTestDriveController;
 use App\Http\Controllers\Admin\LookupController;
 use App\Http\Controllers\InquiryController;
+use App\Http\Controllers\Admin\AdminUserController;
 
 // Public Customer Routes
 Route::get('/vehicles', [VehicleController::class, 'index']);
@@ -58,4 +59,13 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/inquiries', [InquiryController::class, 'index']);
     Route::delete('/inquiries/{id}', [InquiryController::class, 'destroy']);
+
+    // User CRUD Management
+Route::get('/users', [AdminUserController::class, 'index']);
+Route::post('/users', [AdminUserController::class, 'store']);
+Route::put('/users/{id}', [AdminUserController::class, 'update']);
+Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
+
+// Logged-in Admin Profile Routes
+Route::post('/profile', [AdminUserController::class, 'updateProfile']);
 });

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Car, Layers, LogOut, Menu, X, Calendar, MessageSquare } from 'lucide-react';
+import { Users, UserCheck } from 'lucide-react'; // import icons
+
 
 export default function AdminSidebar({ activeTab, setActiveTab }) {
   const navigate = useNavigate();
@@ -10,6 +12,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
     { id: 'overview', label: 'Dashboard Overview', icon: LayoutDashboard },
     { id: 'inventory', label: 'Inventory Manager', icon: Car },
     { id: 'lookups', label: 'Makes, Models & Fuels', icon: Layers },
+    { id: 'users', label: 'Admin Users', icon: Users },
+    { id: 'profile', label: 'My Profile', icon: UserCheck },
     { id: 'test-rides', label: 'Test Rides', icon: Calendar },
     { id: 'inquiries', label: 'Contact Inquiries', icon: MessageSquare },
   ];
